@@ -1,0 +1,54 @@
+set -euo pipefail
+
+c1=$'\033[1;36m'   # logo - cyan
+c2=$'\033[1;37m'   # labels - bold white
+reset=$'\033[0m'
+
+user="${USER:-$(whoami)}"
+host="${HOSTNAME:-$(uname -n)}"
+
+uptime_str=$(awk '{
+  d=int($1/86400); h=int(($1%86400)/3600); m=int(($1%3600)/60)
+  if (d>0)      printf "%dd %dh %dm", d, h, m
+  else if (h>0) printf "%dh %dm", h, m
+  else          printf "%dm", m
+}' /proc/uptime)
+
+read -r total used <<< "$(df -BG / | awk 'NR==2 { gsub("G",""); print $2, $3 }')"
+storage_str="${used}GB / ${total}GB"
+
+logo=(
+'⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣸⣇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀'
+'⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⣿⣿⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀'
+'⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣿⣿⣿⣿⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀'
+'⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢿⣿⣿⣿⣿⣿⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀'
+'⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣷⣤⣙⢻⣿⣿⣿⣿⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀'
+'⠀⠀⠀⠀⠀⠀⠀⠀⢀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡀⠀⠀⠀⠀⠀⠀⠀⠀'
+'⠀⠀⠀⠀⠀⠀⠀⢠⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⡄⠀⠀⠀⠀⠀⠀⠀'
+'⠀⠀⠀⠀⠀⠀⢠⣿⣿⣿⣿⣿⡿⠛⠛⠿⣿⣿⣿⣿⣿⡄⠀⠀⠀⠀⠀⠀'
+'⠀⠀⠀⠀⠀⢠⣿⣿⣿⣿⣿⠏⠀⠀⠀⠀⠙⣿⣿⣿⣿⣿⡄⠀⠀⠀⠀⠀'
+'⠀⠀⠀⠀⣰⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⢿⣿⣿⣿⣿⠿⣆⠀⠀⠀⠀'
+'⠀⠀⠀⣴⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣷⣦⡀⠀⠀⠀'
+'⠀⢀⣾⣿⣿⠿⠟⠛⠋⠉⠉⠀⠀⠀⠀⠀⠀⠉⠉⠙⠛⠻⠿⣿⣿⣷⡀⠀'
+'⣠⠟⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠻⣄'
+)
+
+info=(
+"${c2}${user}${reset}@${c2}${host}${reset}"
+'----------------'
+"${c2}Uptime ${reset} ${uptime_str}"
+"${c2}Storage${reset} ${storage_str}"
+)
+
+info_offset=4
+
+echo
+for i in "${!logo[@]}"; do
+  info_i=$((i - info_offset))
+  text=""
+  if (( info_i >= 0 && info_i < ${#info[@]} )); then
+    text="${info[$info_i]}"
+  fi
+  printf "${c1}%-28s${reset} %s\n" "${logo[$i]}" "$text"
+done
+echo
